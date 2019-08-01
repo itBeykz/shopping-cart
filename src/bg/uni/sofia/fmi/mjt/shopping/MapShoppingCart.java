@@ -4,9 +4,24 @@ import java.util.*;
 
 public class MapShoppingCart implements ShoppingCart {
 
-    private Map<Item, Integer> shoppingMap = new HashMap<>();
+    private Comparator<Item> SortingComparator = new Comparator<Item>() {
+        @Override
+        public int compare(Item o1, Item o2) {
+            Integer item1 = o1.getQuantity();
+            Integer item2 = o2.getQuantity();
+            String item1name = o1.getName();
+            String item2name = o2.getName();
+            int quantityCompare = item1.compareTo(item2);
+            int nameCompare = item1name.compareTo(item2name);
+            if (nameCompare == 0)
+                return ((quantityCompare == 0) ? quantityCompare : quantityCompare);
+            else
+                return nameCompare;
+
+        }
+    };
+    private Map<Item, Integer> shoppingMap = new TreeMap<Item, Integer>(SortingComparator);
     private double total;
-    private static int counter = 2;
 
     public MapShoppingCart() {
         total = 0;
@@ -16,8 +31,6 @@ public class MapShoppingCart implements ShoppingCart {
     @Override
     public Collection<Item> getUniqueItems() {
         List<Item> shoppingList = Collections.list(Collections.enumeration(shoppingMap.keySet()));
-for(Item item : shoppingList)
-    System.out.println(item.getName());
         List<Item> tempList = new LinkedList<>();
         for (Item item : shoppingList)
             if (item.getQuantity() == 1)
@@ -40,11 +53,11 @@ for(Item item : shoppingList)
         if (item == null) {
             throw new ItemNotFoundException("Invalid item");
         } else if (shoppingMap.containsKey(item)) {
-            shoppingMap.put(item, counter++);
+            shoppingMap.put(item, item.getQuantity() + 1);
             total += item.getPrice();
             System.out.println("Item added in the map!");
         } else {
-            shoppingMap.put(item, 1);
+            shoppingMap.put(item, item.getQuantity());
             total += item.getPrice();
             System.out.println("Item added in the map!");
         }
@@ -56,7 +69,7 @@ for(Item item : shoppingList)
         if (item == null) {
             throw new ItemNotFoundException("Invalid item");
         } else if (shoppingMap.containsKey(item)) {
-            shoppingMap.remove(item);
+            shoppingMap.put(item, item.getQuantity() - 1);
             total -= item.getPrice();
             item.setQuantity(item.getQuantity() - 1);
 
@@ -75,25 +88,14 @@ for(Item item : shoppingList)
 
     public static Collection<Item> sortByValue(Map<Item, Integer> hm) {
 
-        List<Map.Entry<Item, Integer>> list =
-                new LinkedList<>(hm.entrySet());
-
-        Collections.sort(list, new mapSortingComparator());
-
-
-        Map<Item, Integer> temp = new HashMap<>();
-        for (Map.Entry<Item, Integer> product : list) {
-            temp.put(product.getKey(), product.getValue());
-        }
-
-        List<Item> tempList = Collections.list(Collections.enumeration(temp.keySet()));
+        List<Item> tempList = Collections.list(Collections.enumeration(hm.keySet()));
         return tempList;
     }
 
     @Override
     public void print() {
         for (Map.Entry<Item, Integer> entry : shoppingMap.entrySet())
-            System.out.println("Key = " + entry.getKey() +
+            System.out.println("Key = " + entry.getKey().getName() +
                     ", Value = " + entry.getValue());
     }
 }
